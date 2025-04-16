@@ -9,6 +9,9 @@
     "type": "git",
     "url": "https://github.com/SMZ70/singbox-configurator.git"
   },
+  "bugs": {
+    "url": "https://github.com/SMZ70/singbox-configurator/issues"
+  },
   "keywords": [
     "singbox",
     "proxy",
