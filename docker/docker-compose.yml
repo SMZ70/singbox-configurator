@@ -1,0 +1,14 @@
+services:
+  web:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: singbox_generator_web
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+
+networks:
+  singbox_network:
+    driver: bridge 

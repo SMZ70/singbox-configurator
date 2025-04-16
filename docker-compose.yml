@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: singbox_generator_web
+    ports:
+      - "3001:80"
+    restart: unless-stopped
+    networks:
+      - singbox_network
+
+networks:
+  singbox_network:
+    driver: bridge 

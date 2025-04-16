@@ -1,0 +1,1233 @@
+# Form configuration for Singbox Generator
+# This file defines the structure, validation, and behavior of forms
+
+# Reusable schema definitions
+schemas:
+  tcp_listen:
+    name: listen_options
+    label: Listen Options
+    type: object
+    required: true
+    fields:
+      - name: listen
+        label: Listen Address
+        type: text
+        required: true
+        description: Listen address for the inbound
+        default: "0.0.0.0"
+
+      - name: listen_port
+        label: Listen Port
+        type: number
+        required: true
+        description: Listen port for the inbound
+        min: 1
+        max: 65535
+
+      - name: tcp_fast_open
+        label: TCP Fast Open
+        type: boolean
+        required: false
+        default: false
+        description: Enable TCP Fast Open
+
+      - name: tcp_multi_path
+        label: TCP Multi Path
+        type: boolean
+        required: false
+        default: false
+        description: Enable TCP Multi Path (requires Go 1.21)
+
+  tls:
+    name: tls
+    label: TLS Configuration
+    type: object
+    required: false
+    fields:
+      - name: enabled
+        label: Enable TLS
+        type: boolean
+        required: false
+        default: false
+        description: Enable TLS encryption for this inbound
+
+      - name: server_name
+        label: Server Name
+        type: text
+        required: false
+        description: Used to verify the hostname on the returned certificates and included in client's handshake
+        depends_on:
+          field: tls.enabled
+          value: true
+
+      - name: alpn
+        label: ALPN
+        type: array
+        required: false
+        item_type: text
+        description: List of supported application level protocols, in order of preference
+        depends_on:
+          field: tls.enabled
+          value: true
+
+      - name: min_version
+        label: Minimum TLS Version
+        type: select
+        required: false
+        options:
+          - ""
+          - "1.0"
+          - "1.1"
+          - "1.2"
+          - "1.3"
+        description: The minimum TLS version that is acceptable (defaults to 1.0 for server)
+        default: "1.0"
+        depends_on:
+          field: tls.enabled
+          value: true
+
+      - name: max_version
+        label: Maximum TLS Version
+        type: select
+        required: false
+        options:
+          - ""
+          - "1.0"
+          - "1.1"
+          - "1.2"
+          - "1.3"
+        description: The maximum TLS version that is acceptable (defaults to 1.3)
+        depends_on:
+          field: tls.enabled
+          value: true
+
+      - name: certificate_path
+        label: Certificate Path
+        type: text
+        required: false
+        description: Path to the server certificate file in PEM format (will be automatically reloaded if modified)
+        depends_on:
+          field: tls.enabled
+          value: true
+        default: ""
+
+      - name: key_path
+        label: Private Key Path
+        type: text
+        required: false
+        description: Path to the server private key file in PEM format (will be automatically reloaded if modified)
+        depends_on:
+          field: tls.enabled
+          value: true
+
+  http_users:
+    name: users
+    label: Users
+    type: array
+    required: false
+    item_type: object
+    fields:
+      - name: username
+        label: Username
+        type: text
+        required: true
+        description: Username for authentication
+      - name: password
+        label: Password
+        type: password
+        required: true
+        description: Password for authentication
+    description: HTTP users. No authentication required if empty.
+
+  transport:
+    name: transport
+    label: Transport Configuration
+    type: object
+    required: false
+    fields:
+      - name: type
+        label: Transport Type
+        type: select
+        required: true
+        options:
+          - "http"
+          - "ws"
+          - "quic"
+          - "grpc"
+          - "httpupgrade"
+        description: Select the transport type
+        default: "http"
+
+      - name: host
+        label: Host
+        type: text
+        required: false
+        description: Host domain for HTTP/HTTPUpgrade transport
+        depends_on:
+          field: transport.type
+          value: ["http", "httpupgrade"]
+
+      - name: path
+        label: Path
+        type: text
+        required: false
+        description: Path for HTTP/WebSocket/HTTPUpgrade transport
+        depends_on:
+          field: transport.type
+          value: ["http", "ws", "httpupgrade"]
+
+      - name: method
+        label: Method
+        type: text
+        required: false
+        description: HTTP method for HTTP transport
+        depends_on:
+          field: transport.type
+          value: "http"
+
+      - name: headers
+        label: Headers
+        type: object
+        required: false
+        description: Extra headers for HTTP/WebSocket/HTTPUpgrade transport
+        depends_on:
+          field: transport.type
+          value: ["http", "ws", "httpupgrade"]
+
+      - name: max_early_data
+        label: Max Early Data
+        type: number
+        required: false
+        description: Maximum early data size for WebSocket transport
+        depends_on:
+          field: transport.type
+          value: "ws"
+
+      - name: early_data_header_name
+        label: Early Data Header Name
+        type: text
+        required: false
+        description: Early data header name for WebSocket transport
+        depends_on:
+          field: transport.type
+          value: "ws"
+
+      - name: service_name
+        label: Service Name
+        type: text
+        required: false
+        description: Service name for gRPC transport
+        depends_on:
+          field: transport.type
+          value: "grpc"
+
+  multiplex:
+    name: multiplex
+    label: Multiplex Configuration
+    type: object
+    required: false
+    fields:
+      - name: enabled
+        label: Enable Multiplex
+        type: boolean
+        required: false
+        default: false
+        description: Enable multiplex support
+
+      - name: protocol
+        label: Protocol
+        type: select
+        required: false
+        options:
+          - "smux"
+          - "yamux"
+          - "h2mux"
+        description: Multiplex protocol
+        depends_on:
+          field: multiplex.enabled
+          value: true
+
+      - name: max_connections
+        label: Max Connections
+        type: number
+        required: false
+        description: Maximum connections
+        depends_on:
+          field: multiplex.enabled
+          value: true
+
+      - name: min_streams
+        label: Min Streams
+        type: number
+        required: false
+        description: Minimum multiplexed streams in a connection before opening a new connection
+        depends_on:
+          field: multiplex.enabled
+          value: true
+
+      - name: max_streams
+        label: Max Streams
+        type: number
+        required: false
+        description: Maximum multiplexed streams in a connection before opening a new connection
+        depends_on:
+          field: multiplex.enabled
+          value: true
+
+      - name: padding
+        label: Enable Padding
+        type: boolean
+        required: false
+        default: false
+        description: Enable padding
+        depends_on:
+          field: multiplex.enabled
+          value: true
+
+inbound:
+  # Base fields that are common to all inbound types
+  base_fields:
+    - name: type
+      label: Type
+      type: select
+      required: true
+      options: 
+        - "direct"
+        - "mixed"
+        - "socks"
+        - "http"
+        - "shadowsocks"
+        - "vmess"
+        - "trojan"
+        - "naive"
+        - "hysteria"
+        - "shadowtls"
+        - "tuic"
+        - "hysteria2"
+        - "vless"
+        - "tun"
+        - "redirect"
+        - "tproxy"
+      description: Select the inbound type
+      order: 1
+      default: "http"
+
+    - name: tag
+      label: Tag
+      type: text
+      required: true
+      pattern: "^[a-zA-Z0-9_-]+$"
+      description: Unique identifier for this inbound
+      order: 2
+
+  # Type-specific fields
+  type_fields:
+    http:
+      - $ref: "#/schemas/tcp_listen"
+      - $ref: "#/schemas/http_users"
+      - $ref: "#/schemas/tls"
+      - name: set_system_proxy
+        label: Set System Proxy
+        type: boolean
+        required: false
+        default: false
+        description: Automatically set system proxy configuration when start and clean up when stop. Only supported on Linux, Android, Windows, and macOS.
+
+    shadowsocks:
+      - $ref: "#/schemas/tcp_listen"
+      - name: method
+        label: Encryption Method
+        type: select
+        required: true
+        options:
+          - "2022-blake3-aes-128-gcm"
+          - "2022-blake3-aes-256-gcm"
+          - "2022-blake3-chacha20-poly1305"
+          - "none"
+          - "aes-128-gcm"
+          - "aes-192-gcm"
+          - "aes-256-gcm"
+          - "chacha20-ietf-poly1305"
+          - "xchacha20-ietf-poly1305"
+        description: Select the encryption method
+
+      - name: password
+        label: Password
+        type: text
+        required: true
+        description: Password for authentication
+
+      - $ref: "#/schemas/multiplex"
+
+    vmess:
+      - $ref: "#/schemas/tcp_listen"
+      - name: users
+        label: Users
+        type: array
+        required: true
+        item_type: object
+        fields:
+          - name: name
+            label: Name
+            type: text
+            required: true
+            description: User name
+          - name: uuid
+            label: UUID
+            type: text
+            required: true
+            pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            description: User UUID
+          - name: alterId
+            label: Alter ID
+            type: number
+            required: false
+            default: 0
+            description: Alter ID (0 to disable legacy protocol)
+      - $ref: "#/schemas/tls"
+      - $ref: "#/schemas/multiplex"
+      - $ref: "#/schemas/transport"
+
+    trojan:
+      - $ref: "#/schemas/tcp_listen"
+      - name: users
+        label: Users
+        type: array
+        required: true
+        item_type: object
+        fields:
+          - name: name
+            label: Name
+            type: text
+            required: true
+            description: User name
+          - name: password
+            label: Password
+            type: text
+            required: true
+            description: User password
+      - $ref: "#/schemas/tls"
+      - name: fallback
+        label: Fallback
+        type: object
+        required: false
+        fields:
+          - name: server
+            label: Server
+            type: text
+            required: true
+            description: Fallback server address
+          - name: server_port
+            label: Server Port
+            type: number
+            required: true
+            description: Fallback server port
+      - name: fallback_for_alpn
+        label: Fallback for ALPN
+        type: object
+        required: false
+        fields:
+          - name: http/1.1
+            label: HTTP/1.1
+            type: object
+            required: false
+            fields:
+              - name: server
+                label: Server
+                type: text
+                required: true
+                description: Fallback server address
+              - name: server_port
+                label: Server Port
+                type: number
+                required: true
+                description: Fallback server port
+      - $ref: "#/schemas/multiplex"
+      - $ref: "#/schemas/transport"
+
+    vless:
+      - $ref: "#/schemas/tcp_listen"
+      - name: users
+        label: Users
+        type: array
+        required: true
+        item_type: object
+        fields:
+          - name: name
+            label: Name
+            type: text
+            required: true
+            description: User name
+          - name: uuid
+            label: UUID
+            type: text
+            required: true
+            pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            description: User UUID
+      - $ref: "#/schemas/tls"
+      - $ref: "#/schemas/multiplex"
+      - $ref: "#/schemas/transport"
+
+    socks:
+      - $ref: "#/schemas/tcp_listen"
+      - name: users
+        label: Users
+        type: array
+        required: false
+        item_type: object
+        fields:
+          - name: username
+            label: Username
+            type: text
+            required: true
+            description: Username for authentication
+          - name: password
+            label: Password
+            type: password
+            required: true
+            description: Password for authentication
+      - $ref: "#/schemas/tls"
+      - $ref: "#/schemas/multiplex"
+      - $ref: "#/schemas/transport"
+
+    hysteria:
+      - $ref: "#/schemas/tcp_listen"
+      - name: up_mbps
+        label: Upload Speed (Mbps)
+        type: number
+        required: true
+        description: Upload speed in Mbps
+      - name: down_mbps
+        label: Download Speed (Mbps)
+        type: number
+        required: true
+        description: Download speed in Mbps
+      - name: obfs
+        label: Obfuscation
+        type: text
+        required: false
+        description: Obfuscation password
+      - $ref: "#/schemas/tls"
+
+    hysteria2:
+      - $ref: "#/schemas/tcp_listen"
+      - name: server
+        label: Server
+        type: text
+        required: true
+        description: Server address
+      - name: server_port
+        label: Server Port
+        type: number
+        required: true
+        description: Server port
+      - name: server_ports
+        label: Server Ports
+        type: array
+        required: false
+        item_type: text
+        description: Server port range list (e.g. "2080:3000")
+      - name: hop_interval
+        label: Hop Interval
+        type: text
+        required: false
+        description: Port hopping interval (e.g. "30s")
+      - name: up_mbps
+        label: Upload Speed (Mbps)
+        type: number
+        required: false
+        description: Max upload bandwidth in Mbps
+      - name: down_mbps
+        label: Download Speed (Mbps)
+        type: number
+        required: false
+        description: Max download bandwidth in Mbps
+      - name: obfs
+        label: Obfuscation
+        type: object
+        required: false
+        fields:
+          - name: type
+            label: Type
+            type: select
+            required: true
+            options:
+              - "salamander"
+            description: QUIC traffic obfuscator type
+          - name: password
+            label: Password
+            type: text
+            required: true
+            description: QUIC traffic obfuscator password
+      - name: password
+        label: Password
+        type: text
+        required: true
+        description: Authentication password
+      - name: network
+        label: Network
+        type: select
+        required: false
+        options:
+          - "tcp"
+          - "udp"
+        description: Enabled network
+      - name: brutal_debug
+        label: Brutal Debug
+        type: boolean
+        required: false
+        default: false
+        description: Enable debug information logging for Hysteria Brutal CC
+      - $ref: "#/schemas/tls"
+
+    tuic:
+      - $ref: "#/schemas/tcp_listen"
+      - name: users
+        label: Users
+        type: array
+        required: true
+        item_type: object
+        fields:
+          - name: name
+            label: Name
+            type: text
+            required: true
+            description: User name
+          - name: uuid
+            label: UUID
+            type: text
+            required: true
+            pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            description: User UUID
+          - name: password
+            label: Password
+            type: text
+            required: true
+            description: User password
+      - $ref: "#/schemas/tls"
+
+    shadowtls:
+      - $ref: "#/schemas/tcp_listen"
+      - name: users
+        label: Users
+        type: array
+        required: true
+        item_type: object
+        fields:
+          - name: name
+            label: Name
+            type: text
+            required: true
+            description: User name
+          - name: password
+            label: Password
+            type: text
+            required: true
+            description: User password
+      - name: handshake
+        label: Handshake
+        type: object
+        required: true
+        fields:
+          - name: server
+            label: Server
+            type: text
+            required: true
+            description: Handshake server address
+          - name: server_port
+            label: Server Port
+            type: number
+            required: true
+            description: Handshake server port
+      - $ref: "#/schemas/tls"
+
+    naive:
+      - $ref: "#/schemas/tcp_listen"
+      - name: users
+        label: Users
+        type: array
+        required: true
+        item_type: object
+        fields:
+          - name: username
+            label: Username
+            type: text
+            required: true
+            description: Username for authentication
+          - name: password
+            label: Password
+            type: password
+            required: true
+            description: Password for authentication
+      - $ref: "#/schemas/tls"
+
+    tun:
+      - name: interface_name
+        label: Interface Name
+        type: text
+        required: true
+        description: Interface name
+      - name: inet4_address
+        label: IPv4 Address
+        type: text
+        required: true
+        description: IPv4 address with CIDR
+      - name: inet6_address
+        label: IPv6 Address
+        type: text
+        required: false
+        description: IPv6 address with CIDR
+      - name: mtu
+        label: MTU
+        type: number
+        required: false
+        description: Interface MTU
+      - name: auto_route
+        label: Auto Route
+        type: boolean
+        required: false
+        default: true
+        description: Automatically configure routing
+      - name: strict_route
+        label: Strict Route
+        type: boolean
+        required: false
+        default: false
+        description: Enable strict routing
+      - name: stack
+        label: Stack
+        type: select
+        required: false
+        options:
+          - "system"
+          - "gvisor"
+        description: Network stack
+        default: "system"
+
+    redirect:
+      - $ref: "#/schemas/tcp_listen"
+      - name: target
+        label: Target
+        type: text
+        required: true
+        description: Target address
+
+    tproxy:
+      - $ref: "#/schemas/tcp_listen"
+      - name: network
+        label: Network
+        type: select
+        required: false
+        options:
+          - "tcp"
+          - "udp"
+        description: Network type
+        default: "tcp"
+
+outbound:
+  # Base fields that are common to all outbound types
+  base_fields:
+    - name: type
+      label: Type
+      type: select
+      required: true
+      options:
+        - "direct"
+        - "block"
+        - "socks"
+        - "http"
+        - "shadowsocks"
+        - "vmess"
+        - "trojan"
+        - "wireguard"
+        - "hysteria"
+        - "vless"
+        - "shadowtls"
+        - "tuic"
+        - "hysteria2"
+        - "tor"
+        - "ssh"
+        - "dns"
+        - "selector"
+        - "urltest"
+      description: Select the outbound type
+      order: 1
+      default: "direct"
+
+    - name: tag
+      label: Tag
+      type: text
+      required: true
+      pattern: "^[a-zA-Z0-9_-]+$"
+      description: Unique identifier for this outbound
+      order: 2
+
+  # Type-specific fields
+  type_fields:
+    direct:
+      # No additional fields for direct outbound
+      []
+
+    block:
+      # No additional fields for block outbound
+      []
+
+    shadowsocks:
+      - name: server
+        label: Server
+        type: text
+        required: true
+        description: Server address
+      - name: server_port
+        label: Server Port
+        type: number
+        required: true
+        description: Server port
+      - name: method
+        label: Encryption Method
+        type: select
+        required: true
+        options:
+          - "2022-blake3-aes-128-gcm"
+          - "2022-blake3-aes-256-gcm"
+          - "2022-blake3-chacha20-poly1305"
+          - "none"
+          - "aes-128-gcm"
+          - "aes-192-gcm"
+          - "aes-256-gcm"
+          - "chacha20-ietf-poly1305"
+          - "xchacha20-ietf-poly1305"
+        description: Select the encryption method
+      - name: password
+        label: Password
+        type: text
+        required: true
+        description: Password for authentication
+      - $ref: "#/schemas/tls"
+      - $ref: "#/schemas/multiplex"
+      - $ref: "#/schemas/transport"
+
+    vmess:
+      - name: server
+        label: Server
+        type: text
+        required: true
+        description: Server address
+      - name: server_port
+        label: Server Port
+        type: number
+        required: true
+        description: Server port
+      - name: uuid
+        label: UUID
+        type: text
+        required: true
+        pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+        description: User UUID
+      - name: alterId
+        label: Alter ID
+        type: number
+        required: false
+        default: 0
+        description: Alter ID (0 to disable legacy protocol)
+      - $ref: "#/schemas/tls"
+      - $ref: "#/schemas/multiplex"
+      - $ref: "#/schemas/transport"
+
+    trojan:
+      - name: server
+        label: Server
+        type: text
+        required: true
+        description: Server address
+      - name: server_port
+        label: Server Port
+        type: number
+        required: true
+        description: Server port
+      - name: password
+        label: Password
+        type: text
+        required: true
+        description: Password for authentication
+      - $ref: "#/schemas/tls"
+      - $ref: "#/schemas/multiplex"
+      - $ref: "#/schemas/transport"
+
+    vless:
+      - name: server
+        label: Server
+        type: text
+        required: true
+        description: Server address
+      - name: server_port
+        label: Server Port
+        type: number
+        required: true
+        description: Server port
+      - name: uuid
+        label: UUID
+        type: text
+        required: true
+        pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+        description: User UUID
+      - $ref: "#/schemas/tls"
+      - $ref: "#/schemas/multiplex"
+      - $ref: "#/schemas/transport"
+
+    socks:
+      - name: server
+        label: Server
+        type: text
+        required: true
+        description: Server address
+      - name: server_port
+        label: Server Port
+        type: number
+        required: true
+        description: Server port
+      - name: username
+        label: Username
+        type: text
+        required: false
+        description: Username for authentication
+      - name: password
+        label: Password
+        type: password
+        required: false
+        description: Password for authentication
+      - $ref: "#/schemas/tls"
+      - $ref: "#/schemas/multiplex"
+      - $ref: "#/schemas/transport"
+
+    http:
+      - name: server
+        label: Server
+        type: text
+        required: true
+        description: Server address
+      - name: server_port
+        label: Server Port
+        type: number
+        required: true
+        description: Server port
+      - name: username
+        label: Username
+        type: text
+        required: false
+        description: Username for authentication
+      - name: password
+        label: Password
+        type: password
+        required: false
+        description: Password for authentication
+      - $ref: "#/schemas/tls"
+      - $ref: "#/schemas/multiplex"
+      - $ref: "#/schemas/transport"
+
+    hysteria:
+      - name: server
+        label: Server
+        type: text
+        required: true
+        description: Server address
+      - name: server_port
+        label: Server Port
+        type: number
+        required: true
+        description: Server port
+      - name: up_mbps
+        label: Upload Speed (Mbps)
+        type: number
+        required: true
+        description: Upload speed in Mbps
+      - name: down_mbps
+        label: Download Speed (Mbps)
+        type: number
+        required: true
+        description: Download speed in Mbps
+      - name: obfs
+        label: Obfuscation
+        type: text
+        required: false
+        description: Obfuscation password
+      - $ref: "#/schemas/tls"
+
+    hysteria2:
+      - name: server
+        label: Server
+        type: text
+        required: true
+        description: Server address
+      - name: server_port
+        label: Server Port
+        type: number
+        required: true
+        description: Server port
+      - name: server_ports
+        label: Server Ports
+        type: array
+        required: false
+        item_type: text
+        description: Server port range list (e.g. "2080:3000")
+      - name: hop_interval
+        label: Hop Interval
+        type: text
+        required: false
+        description: Port hopping interval (e.g. "30s")
+      - name: up_mbps
+        label: Upload Speed (Mbps)
+        type: number
+        required: false
+        description: Max upload bandwidth in Mbps
+      - name: down_mbps
+        label: Download Speed (Mbps)
+        type: number
+        required: false
+        description: Max download bandwidth in Mbps
+      - name: obfs
+        label: Obfuscation
+        type: object
+        required: false
+        fields:
+          - name: type
+            label: Type
+            type: select
+            required: true
+            options:
+              - "salamander"
+            description: QUIC traffic obfuscator type
+          - name: password
+            label: Password
+            type: text
+            required: true
+            description: QUIC traffic obfuscator password
+      - name: password
+        label: Password
+        type: text
+        required: true
+        description: Authentication password
+      - name: network
+        label: Network
+        type: select
+        required: false
+        options:
+          - "tcp"
+          - "udp"
+        description: Enabled network
+      - name: brutal_debug
+        label: Brutal Debug
+        type: boolean
+        required: false
+        default: false
+        description: Enable debug information logging for Hysteria Brutal CC
+      - $ref: "#/schemas/tls"
+
+    tuic:
+      - name: server
+        label: Server
+        type: text
+        required: true
+        description: Server address
+      - name: server_port
+        label: Server Port
+        type: number
+        required: true
+        description: Server port
+      - name: uuid
+        label: UUID
+        type: text
+        required: true
+        pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+        description: User UUID
+      - name: password
+        label: Password
+        type: text
+        required: true
+        description: User password
+      - $ref: "#/schemas/tls"
+
+    shadowtls:
+      - name: server
+        label: Server
+        type: text
+        required: true
+        description: Server address
+      - name: server_port
+        label: Server Port
+        type: number
+        required: true
+        description: Server port
+      - name: password
+        label: Password
+        type: text
+        required: true
+        description: Password for authentication
+      - name: handshake
+        label: Handshake
+        type: object
+        required: true
+        fields:
+          - name: server
+            label: Server
+            type: text
+            required: true
+            description: Handshake server address
+          - name: server_port
+            label: Server Port
+            type: number
+            required: true
+            description: Handshake server port
+      - $ref: "#/schemas/tls"
+
+    wireguard:
+      - name: server
+        label: Server
+        type: text
+        required: true
+        description: Server address
+      - name: server_port
+        label: Server Port
+        type: number
+        required: true
+        description: Server port
+      - name: system_interface
+        label: System Interface
+        type: boolean
+        required: false
+        default: false
+        description: Use system interface
+      - name: interface_name
+        label: Interface Name
+        type: text
+        required: true
+        description: Interface name
+      - name: private_key
+        label: Private Key
+        type: text
+        required: true
+        description: Private key
+      - name: peer_public_key
+        label: Peer Public Key
+        type: text
+        required: true
+        description: Peer public key
+      - name: peer_pre_shared_key
+        label: Peer Pre-shared Key
+        type: text
+        required: false
+        description: Peer pre-shared key
+      - name: reserved
+        label: Reserved
+        type: array
+        required: false
+        item_type: number
+        description: Reserved bytes
+      - name: workers
+        label: Workers
+        type: number
+        required: false
+        description: Number of workers
+      - name: mtu
+        label: MTU
+        type: number
+        required: false
+        description: Interface MTU
+
+    tor:
+      - name: executable_path
+        label: Executable Path
+        type: text
+        required: false
+        description: Path to Tor executable
+      - name: extra_args
+        label: Extra Arguments
+        type: array
+        required: false
+        item_type: text
+        description: Extra arguments for Tor
+      - name: data_directory
+        label: Data Directory
+        type: text
+        required: false
+        description: Data directory for Tor
+
+    ssh:
+      - name: server
+        label: Server
+        type: text
+        required: true
+        description: Server address
+      - name: server_port
+        label: Server Port
+        type: number
+        required: true
+        description: Server port
+      - name: user
+        label: User
+        type: text
+        required: true
+        description: SSH user
+      - name: password
+        label: Password
+        type: password
+        required: false
+        description: SSH password
+      - name: private_key
+        label: Private Key
+        type: text
+        required: false
+        description: SSH private key
+      - name: private_key_path
+        label: Private Key Path
+        type: text
+        required: false
+        description: Path to SSH private key
+
+    dns:
+      - name: address
+        label: Address
+        type: text
+        required: true
+        description: DNS server address
+      - name: address_resolver
+        label: Address Resolver
+        type: text
+        required: false
+        description: Address resolver tag
+
+    selector:
+      - name: outbounds
+        label: Outbounds
+        type: array
+        required: true
+        item_type: text
+        description: List of outbound tags
+      - name: default
+        label: Default
+        type: text
+        required: false
+        description: Default outbound tag
+
+    urltest:
+      - name: outbounds
+        label: Outbounds
+        type: array
+        required: true
+        item_type: text
+        description: List of outbound tags
+      - name: url
+        label: URL
+        type: text
+        required: true
+        description: Test URL
+      - name: interval
+        label: Interval
+        type: text
+        required: false
+        description: Test interval
+      - name: tolerance
+        label: Tolerance
+        type: number
+        required: false
+        description: Tolerance in milliseconds 
