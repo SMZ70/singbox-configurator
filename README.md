@@ -1,5 +1,10 @@
 # Singbox Configurator
 
+[![Version](https://img.shields.io/github/package-json/v/SMZ70/singbox-configurator)](https://github.com/SMZ70/singbox-configurator)
+[![License](https://img.shields.io/github/license/SMZ70/singbox-configurator)](https://github.com/SMZ70/singbox-configurator/blob/master/LICENSE)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/SMZ70/singbox-configurator/ci.yml)](https://github.com/SMZ70/singbox-configurator/actions)
+[![Code Coverage](https://img.shields.io/codecov/c/github/SMZ70/singbox-configurator)](https://codecov.io/gh/SMZ70/singbox-configurator)
+
 A web-based configuration generator for Singbox, a universal proxy platform. This tool provides a user-friendly interface to create, edit, and manage Singbox configurations without needing to write YAML manually.
 
 ## Features
@@ -11,6 +16,10 @@ A web-based configuration generator for Singbox, a universal proxy platform. Thi
 - 🐳 Docker support for easy deployment
 - 🔄 Live preview of configuration changes
 - 📦 Export configurations in various formats
+
+## Screenshots
+
+*Screenshots coming soon!*
 
 ## Project Structure
 
@@ -29,6 +38,7 @@ singbox-configurator/
 ├── assets/               # Application assets (icons, images)
 ├── README.md             # Project documentation
 ├── LICENSE               # License file
+├── CHANGELOG.md          # Version history
 └── CONTRIBUTING.md       # Contribution guidelines
 ```
 
@@ -88,6 +98,10 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a list of changes between versions.
 
 ## License
 
