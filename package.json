@@ -1,5 +1,5 @@
 {
-  "name": "singbox-generator-web",
+  "name": "singbox-configurator",
   "private": true,
   "version": "0.0.1",
   "type": "module",
@@ -7,7 +7,7 @@
   "description": "A web-based configuration generator for Singbox, a universal proxy platform",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/singbox_generator_web.git"
+    "url": "https://github.com/SMZ70/singbox-configurator.git"
   },
   "keywords": [
     "singbox",
@@ -18,7 +18,7 @@
     "react",
     "vue"
   ],
-  "author": "Your Name <your.email@example.com>",
+  "author": "SMZ70",
   "license": "ISC",
   "scripts": {
     "dev": "vite",

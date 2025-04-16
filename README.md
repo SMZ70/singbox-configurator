@@ -1,4 +1,4 @@
-# Singbox Generator Web
+# Singbox Configurator
 
 A web-based configuration generator for Singbox, a universal proxy platform. This tool provides a user-friendly interface to create, edit, and manage Singbox configurations without needing to write YAML manually.
 
@@ -15,7 +15,7 @@ A web-based configuration generator for Singbox, a universal proxy platform. Thi
 ## Project Structure
 
 ```
-singbox_generator_web/
+singbox-configurator/
 ├── src/                    # Source code
 │   ├── components/        # React components
 │   ├── pages/            # Page components
@@ -44,8 +44,8 @@ singbox_generator_web/
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/singbox_generator_web.git
-   cd singbox_generator_web
+   git clone https://github.com/SMZ70/singbox-configurator.git
+   cd singbox-configurator
    ```
 
 2. Install dependencies:
