@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { PlusIcon, CogIcon, DocumentTextIcon, ArrowDownTrayIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { useState, useEffect } from 'react'
+import { PlusIcon, CogIcon, DocumentTextIcon, ArrowDownTrayIcon, PencilIcon, TrashIcon, SunIcon, MoonIcon } from '@heroicons/react/24/outline'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 import AddInbound from './components/AddInbound'
 import AddOutbound from './components/AddOutbound'
@@ -36,6 +36,15 @@ export default function App() {
   const [inbounds, setInbounds] = useState<Inbound[]>([])
   const [outbounds, setOutbounds] = useState<Outbound[]>([])
   const [editingItem, setEditingItem] = useState<{ type: 'inbound' | 'outbound', index: number } | null>(null)
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false)
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }, [isDarkMode])
 
   console.log('Active section:', activeSection)
 
@@ -108,7 +117,7 @@ export default function App() {
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className="p-4 border rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow"
+          className="p-4 border rounded-lg bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow"
         >
           <div className="flex justify-between items-start">
             <div className="flex-1">
@@ -141,20 +150,33 @@ export default function App() {
   )
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
       {/* Header */}
-      <header className="bg-white shadow">
+      <header className="bg-white dark:bg-slate-800 shadow dark:shadow-slate-700/20">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 flex justify-between items-center">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-slate-100">
             Singbox Config Generator
           </h1>
-          <button
-            onClick={handleSaveConfig}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            <ArrowDownTrayIcon className="-ml-1 mr-2 h-5 w-5" />
-            Save Config
-          </button>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-100 transition-colors"
+              title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {isDarkMode ? (
+                <SunIcon className="h-6 w-6 text-amber-400" />
+              ) : (
+                <MoonIcon className="h-6 w-6" />
+              )}
+            </button>
+            <button
+              onClick={handleSaveConfig}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-slate-800"
+            >
+              <ArrowDownTrayIcon className="-ml-1 mr-2 h-5 w-5" />
+              Save Config
+            </button>
+          </div>
         </div>
       </header>
 
@@ -170,11 +192,15 @@ export default function App() {
                   onClick={() => setActiveSection(section.id)}
                   className={`flex w-full items-center space-x-3 rounded-lg px-4 py-3 text-left transition-colors ${
                     activeSection === section.id
-                      ? 'bg-primary-100 text-primary-700'
-                      : 'hover:bg-gray-100'
+                      ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                      : 'text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800'
                   }`}
                 >
-                  <section.icon className="h-5 w-5" />
+                  <section.icon className={`h-5 w-5 ${
+                    activeSection === section.id
+                      ? 'text-blue-700 dark:text-blue-300'
+                      : 'text-gray-500 dark:text-slate-400'
+                  }`} />
                   <span>{section.title}</span>
                 </button>
               ))}
@@ -183,10 +209,10 @@ export default function App() {
 
           {/* Content Area */}
           <div className="lg:col-span-3">
-            <div className="rounded-lg bg-white p-6 shadow">
+            <div className="rounded-lg bg-white dark:bg-slate-800 p-6 shadow dark:shadow-slate-700/20">
               {activeSection ? (
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100">
                     {sections.find((s) => s.id === activeSection)?.title}
                   </h2>
                   <div className="mt-4">
@@ -233,7 +259,7 @@ export default function App() {
                     ) : (
                       <button
                         type="button"
-                        className="inline-flex items-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+                        className="inline-flex items-center rounded-md bg-blue-600 dark:bg-blue-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 dark:hover:bg-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:focus-visible:outline-blue-500"
                       >
                         <PlusIcon className="-ml-0.5 mr-1.5 h-5 w-5" />
                         Add New
@@ -242,7 +268,7 @@ export default function App() {
                   </div>
                   {(activeSection === 'inbounds' || activeSection === 'outbounds') && (
                     <div className="mt-4">
-                      <h3 className="text-lg font-medium text-gray-900">
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100">
                         Current {activeSection === 'inbounds' ? 'Inbounds' : 'Outbounds'}
                       </h3>
                       <DragDropContext onDragEnd={handleDragEnd}>
@@ -265,7 +291,7 @@ export default function App() {
                   )}
                 </div>
               ) : (
-                <div className="text-center text-gray-500">
+                <div className="text-center text-gray-500 dark:text-slate-400">
                   Select a section to start configuring
                 </div>
               )}
